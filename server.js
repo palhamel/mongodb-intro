@@ -14,16 +14,34 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.json())
 
-const mongoURL = process.env.MONGO_URL || 'mongodb://localhost/animals'
+// Database setup:
+// const mongoURL = process.env.MONGO_URL || "mongodb://localhost/animals"
+// mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true })
+// mongoose.Promise = Promise
+
+const mongoUrl = process.env.MONGO_URL || "mongodb://localhost/animals"
 mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true })
 mongoose.Promise = Promise
 
+// Mongoose model setup:
+const Animal = mongoose.model('Animal', {
+  name: String,
+  age: Number,
+  isFurry: Boolean
+})
 
-
+// Populate database:
+new Animal({ name: 'Alfons', age: 2, isFurry: true }).save()
+new Animal({ name: 'Lucy', age: 5, isFurry: true }).save()
+new Animal({ name: 'Goldy the goldfish', age: 1, isFurry: false }).save()
 
 // Start defining your routes here
 app.get('/', (req, res) => {
-  res.send('Hello world')
+  // res.send('Hello world')
+  // find all animals and return as json:
+  Animal.find().then(animals => {
+    res.json(animals)
+  })
 })
 
 // Start the server
