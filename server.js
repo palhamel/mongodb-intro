@@ -26,23 +26,41 @@ mongoose.Promise = Promise
 // Mongoose model setup:
 const Animal = mongoose.model('Animal', {
   name: String,
+  type: String,
   age: Number,
   isFurry: Boolean
 })
 
-// Populate database:
-new Animal({ name: 'Alfons', age: 2, isFurry: true }).save()
-new Animal({ name: 'Lucy', age: 5, isFurry: true }).save()
-new Animal({ name: 'Goldy the goldfish', age: 1, isFurry: false }).save()
+// First clear db then populate database:
+Animal.deleteMany().then(() => {
+  new Animal({ name: 'Alfons', type: 'dog', age: 2, isFurry: true }).save()
+  new Animal({ name: 'Lucy', type: 'cat', age: 5, isFurry: true }).save()
+  new Animal({ name: 'Goldy the goldfish', type: 'fish', age: 1, isFurry: false }).save()
+  new Animal({ name: 'Coco', type: 'bird', age: 8, isFurry: false }).save()
+})
 
 // Start defining your routes here
+
 app.get('/', (req, res) => {
   // res.send('Hello world')
-  // find all animals and return as json:
+  // find ALL animals in db and return as json:
   Animal.find().then(animals => {
     res.json(animals)
   })
 })
+
+app.get('/:name', (req, res) => {
+ // find ONE animal per NAME:
+ Animal.findOne({ name: req.params.name }).then(animal => {
+   if (animal) {
+     res.json(animal)
+   } else {
+     res.status(404).json({ error: 'Not found'})
+   }
+ })
+})
+
+
 
 // Start the server
 app.listen(port, () => {
