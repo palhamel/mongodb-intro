@@ -14,11 +14,16 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.json())
 
-// Database setup:
-// const mongoURL = process.env.MONGO_URL || "mongodb://localhost/animals"
-// mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true })
-// mongoose.Promise = Promise
+// Middleware for handling if "no connection to Mongodb":
+app.use((req, res, next) => {
+  if (mongoose.connection.readyState === 1) {
+    next()
+  } else {
+    res.status(503).json({ error: 'Service unavailable '})
+  }
+})
 
+// Database setup:
 const mongoUrl = process.env.MONGO_URL || "mongodb://localhost/animals"
 mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true })
 mongoose.Promise = Promise
@@ -31,7 +36,7 @@ const Animal = mongoose.model('Animal', {
   isFurry: Boolean
 })
 
-// First clear db then populate database:
+// First clear database - then populate database:
 Animal.deleteMany().then(() => {
   new Animal({ name: 'Alfons', type: 'dog', age: 2, isFurry: true }).save()
   new Animal({ name: 'Lucy', type: 'cat', age: 5, isFurry: true }).save()
@@ -40,7 +45,7 @@ Animal.deleteMany().then(() => {
 })
 
 // Start defining your routes here
-
+// FIRST:
 app.get('/', (req, res) => {
   // res.send('Hello world')
   // find ALL animals in db and return as json:
@@ -48,7 +53,7 @@ app.get('/', (req, res) => {
     res.json(animals)
   })
 })
-
+// SECOND:
 app.get('/:name', (req, res) => {
  // find ONE animal per NAME:
  Animal.findOne({ name: req.params.name }).then(animal => {
@@ -59,6 +64,8 @@ app.get('/:name', (req, res) => {
    }
  })
 })
+
+
 
 
 
